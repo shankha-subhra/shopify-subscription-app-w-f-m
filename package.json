@@ -57,7 +57,7 @@
     "ngrok": "^5.0.0-beta.2",
     "prettier": "^3.2.4",
     "selfsigned": "^5.5.0",
-    "typescript": "^5.2.2",
+    "typescript": "^7.0.2",
     "vite": "^8.1.5"
   },
   "workspaces": {
