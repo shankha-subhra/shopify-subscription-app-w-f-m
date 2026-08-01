@@ -39,7 +39,7 @@ if (host === "localhost") {
 
 export default defineConfig({
   server: {
-    allowedHosts: [host],
+    allowedHosts: [host, 'stopwatch-research-dove.ngrok-free.dev'],
     cors: {
       preflightContinue: true,
     },

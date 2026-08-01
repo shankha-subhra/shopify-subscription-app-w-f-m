@@ -1,34 +1,315 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
-// enough when changing adapters.
-// See https://www.prisma.io/docs/orm/reference/prisma-schema-reference#string for more information
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.sqlite"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Session {
-  id                  String    @id
-  shop                String
-  state               String
-  isOnline            Boolean   @default(false)
-  scope               String?
-  expires             DateTime?
-  accessToken         String
-  userId              BigInt?
-  firstName           String?
-  lastName            String?
-  email               String?
-  accountOwner        Boolean   @default(false)
-  locale              String?
-  collaborator        Boolean?  @default(false)
-  emailVerified       Boolean?  @default(false)
-  refreshToken        String?
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  
+  refreshToken  String?
   refreshTokenExpires DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("shopify_sessions")
+  @@index([shop])
+}
+
+model Shop {
+  id                 Int       @id @default(autoincrement())
+  shopDomain         String    @unique @map("shop_domain")
+  accessToken        String?   @map("access_token")
+  scopes             String?
+  installationStatus String    @map("installation_status")
+  installationDate   DateTime? @map("installation_date")
+  uninstallationDate DateTime? @map("uninstallation_date")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  subscriptionRules  SubscriptionRule[]
+  sellingPlanGroups  SellingPlanGroup[]
+  contracts          SubscriptionContract[]
+  webhookEvents      WebhookEvent[]
+  backgroundJobs     BackgroundJob[]
+  auditLogs          AuditLog[]
+
+  @@map("shops")
+  @@index([shopDomain])
+}
+
+model SubscriptionRule {
+  id                   Int       @id @default(autoincrement())
+  shopId               Int       @map("shop_id")
+  ruleName             String    @map("rule_name")
+  ruleDescription      String?   @db.Text @map("rule_description")
+  activeStatus         Boolean   @default(true) @map("active_status")
+  minBillingCycles     Int?      @map("min_billing_cycles")
+  maxBillingCycles     Int?      @map("max_billing_cycles")
+  shopifySellingPlanGroupId String? @map("shopify_selling_plan_group_id")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  deletedAt            DateTime? @map("deleted_at")
+
+  shop                 Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  frequencies          SubscriptionRuleFrequency[]
+  products             SubscriptionRuleProduct[]
+  variants             SubscriptionRuleVariant[]
+  sellingPlanGroups    SellingPlanGroup[]
+
+  @@map("subscription_rules")
+  @@index([shopId, activeStatus])
+}
+
+enum FrequencyType {
+  WEEKLY
+  FORTNIGHTLY
+  MONTHLY
+}
+
+model SubscriptionRuleFrequency {
+  id                   Int       @id @default(autoincrement())
+  subscriptionRuleId   Int       @map("subscription_rule_id")
+  frequency            FrequencyType
+  shopifyInterval      String    @map("shopify_interval")
+  intervalCount        Int       @map("interval_count")
+  discountType         String?   @map("discount_type")
+  discountValue        Decimal?  @db.Decimal(10, 2) @map("discount_value")
+  shopifySellingPlanId String?   @map("shopify_selling_plan_id")
+  activeStatus         Boolean   @default(true) @map("active_status")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  rule                 SubscriptionRule @relation(fields: [subscriptionRuleId], references: [id], onDelete: Cascade)
+  sellingPlans         SellingPlan[]
+
+  @@map("subscription_rule_frequencies")
+  @@index([subscriptionRuleId])
+}
+
+model SubscriptionRuleProduct {
+  id                   Int       @id @default(autoincrement())
+  subscriptionRuleId   Int       @map("subscription_rule_id")
+  shopifyProductId     String    @map("shopify_product_id")
+  productTitle         String    @map("product_title")
+  productHandle        String    @map("product_handle")
+  productImageUrl      String?   @db.Text @map("product_image_url")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  rule                 SubscriptionRule @relation(fields: [subscriptionRuleId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_rule_products")
+  @@unique([subscriptionRuleId, shopifyProductId])
+  @@index([shopifyProductId])
+}
+
+model SubscriptionRuleVariant {
+  id                   Int       @id @default(autoincrement())
+  subscriptionRuleId   Int       @map("subscription_rule_id")
+  shopifyProductId     String    @map("shopify_product_id")
+  shopifyVariantId     String    @map("shopify_variant_id")
+  variantTitle         String    @map("variant_title")
+  sku                  String?
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  rule                 SubscriptionRule @relation(fields: [subscriptionRuleId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_rule_variants")
+  @@unique([subscriptionRuleId, shopifyVariantId])
+  @@index([shopifyVariantId])
+}
+
+model SellingPlanGroup {
+  id                        Int       @id @default(autoincrement())
+  shopId                    Int       @map("shop_id")
+  subscriptionRuleId        Int       @map("subscription_rule_id")
+  shopifySellingPlanGroupId String    @map("shopify_selling_plan_group_id")
+  groupName                 String    @map("group_name")
+  merchantCode              String    @map("merchant_code")
+  status                    String
+  shopifySyncDate           DateTime? @map("shopify_sync_date")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  shop                      Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  rule                      SubscriptionRule @relation(fields: [subscriptionRuleId], references: [id], onDelete: Cascade)
+  sellingPlans              SellingPlan[]
+
+  @@map("selling_plan_groups")
+  @@index([shopifySellingPlanGroupId])
+  @@index([shopId])
+}
+
+model SellingPlan {
+  id                          Int       @id @default(autoincrement())
+  sellingPlanGroupId          Int       @map("selling_plan_group_id")
+  subscriptionRuleFrequencyId Int       @map("subscription_rule_frequency_id")
+  shopifySellingPlanId        String    @map("shopify_selling_plan_id")
+  planName                    String    @map("plan_name")
+  frequency                   FrequencyType
+  interval                    String
+  intervalCount               Int       @map("interval_count")
+  discountType                String?   @map("discount_type")
+  discountValue               Decimal?  @db.Decimal(10, 2) @map("discount_value")
+  status                      String
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  group                       SellingPlanGroup @relation(fields: [sellingPlanGroupId], references: [id], onDelete: Cascade)
+  ruleFrequency               SubscriptionRuleFrequency @relation(fields: [subscriptionRuleFrequencyId], references: [id], onDelete: Cascade)
+
+  @@map("selling_plans")
+  @@index([shopifySellingPlanId])
+}
+
+model SubscriptionContract {
+  id                          Int       @id @default(autoincrement())
+  shopId                      Int       @map("shop_id")
+  shopifyContractId           String    @map("shopify_contract_id")
+  shopifyCustomerId           String    @map("shopify_customer_id")
+  customerEmail               String?   @map("customer_email")
+  status                      String
+  frequency                   FrequencyType
+  billingInterval             String    @map("billing_interval")
+  billingIntervalCount        Int       @map("billing_interval_count")
+  deliveryInterval            String    @map("delivery_interval")
+  deliveryIntervalCount       Int       @map("delivery_interval_count")
+  nextBillingDate             DateTime? @map("next_billing_date")
+  currencyCode                String    @map("currency_code")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+  cancelledAt                 DateTime? @map("cancelled_at")
+
+  shop                        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  lines                       SubscriptionContractLine[]
+  billingAttempts             BillingAttempt[]
+
+  @@map("subscription_contracts")
+  @@index([shopifyContractId])
+  @@index([shopifyCustomerId])
+  @@index([shopId, status])
+  @@index([shopId, nextBillingDate])
+}
+
+model SubscriptionContractLine {
+  id                          Int       @id @default(autoincrement())
+  subscriptionContractId      Int       @map("subscription_contract_id")
+  shopifyContractLineId       String    @map("shopify_contract_line_id")
+  shopifyProductId            String    @map("shopify_product_id")
+  shopifyVariantId            String    @map("shopify_variant_id")
+  productTitle                String    @map("product_title")
+  variantTitle                String    @map("variant_title")
+  sku                         String?
+  quantity                    Int
+  currentPrice                Decimal   @db.Decimal(10, 2) @map("current_price")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  contract                    SubscriptionContract @relation(fields: [subscriptionContractId], references: [id], onDelete: Cascade)
+
+  @@map("subscription_contract_lines")
+}
+
+model BillingAttempt {
+  id                          Int       @id @default(autoincrement())
+  subscriptionContractId      Int       @map("subscription_contract_id")
+  shopifyBillingAttemptId     String?   @map("shopify_billing_attempt_id")
+  idempotencyKey              String    @unique @map("idempotency_key")
+  billingDate                 DateTime  @map("billing_date")
+  amount                      Decimal   @db.Decimal(10, 2)
+  currencyCode                String    @map("currency_code")
+  status                      String
+  errorCode                   String?   @map("error_code")
+  errorMessage                String?   @db.Text @map("error_message")
+  attemptCount                Int       @default(1) @map("attempt_count")
+  completedDate               DateTime? @map("completed_date")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  contract                    SubscriptionContract @relation(fields: [subscriptionContractId], references: [id], onDelete: Cascade)
+
+  @@map("billing_attempts")
+  @@index([status])
+}
+
+model WebhookEvent {
+  id                          Int       @id @default(autoincrement())
+  shopId                      Int       @map("shop_id")
+  shopifyWebhookId            String    @unique @map("shopify_webhook_id")
+  webhookTopic                String    @map("webhook_topic")
+  payload                     Json
+  processingStatus            String    @map("processing_status")
+  attemptCount                Int       @default(0) @map("attempt_count")
+  errorMessage                String?   @db.Text @map("error_message")
+  receivedDate                DateTime  @map("received_date")
+  processedDate               DateTime? @map("processed_date")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  shop                        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_events")
+  @@index([shopId, webhookTopic])
+  @@index([processingStatus])
+}
+
+model BackgroundJob {
+  id                          Int       @id @default(autoincrement())
+  shopId                      Int       @map("shop_id")
+  jobType                     String    @map("job_type")
+  payload                     Json
+  status                      String
+  attemptCount                Int       @default(0) @map("attempt_count")
+  maxAttempts                 Int       @default(3) @map("max_attempts")
+  availableDate               DateTime  @map("available_date")
+  reservedDate                DateTime? @map("reserved_date")
+  completedDate               DateTime? @map("completed_date")
+  failedDate                  DateTime? @map("failed_date")
+  errorMessage                String?   @db.Text @map("error_message")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+  updatedAt                   DateTime  @updatedAt @map("updated_at")
+
+  shop                        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@map("background_jobs")
+  @@index([status, availableDate])
+  @@index([jobType])
+}
+
+model AuditLog {
+  id                          Int       @id @default(autoincrement())
+  shopId                      Int       @map("shop_id")
+  userId                      String?   @map("user_id")
+  action                      String
+  entityType                  String    @map("entity_type")
+  entityId                    String    @map("entity_id")
+  previousValues              Json?     @map("previous_values")
+  newValues                   Json?     @map("new_values")
+  ipAddress                   String?   @map("ip_address")
+  userAgent                   String?   @map("user_agent")
+  createdAt                   DateTime  @default(now()) @map("created_at")
+
+  shop                        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
 }

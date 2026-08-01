@@ -22,6 +22,9 @@
   "engines": {
     "node": ">=20.19 <22 || >=22.12"
   },
+  "prisma": {
+    "seed": "npx tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@prisma/client": "^6.2.1",
     "@remix-run/dev": "^2.16.1",
@@ -40,6 +43,7 @@
     "vite-tsconfig-paths": "^5.0.1"
   },
   "devDependencies": {
+    "@ngrok/ngrok": "^1.7.0",
     "@remix-run/eslint-config": "^2.16.1",
     "@remix-run/route-config": "^2.16.1",
     "@shopify/api-codegen-preset": "^1.1.1",
@@ -47,9 +51,12 @@
     "@types/node": "^22.2.0",
     "@types/react": "^18.2.31",
     "@types/react-dom": "^18.2.14",
+    "dotenv": "^17.4.2",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^10.0.1",
+    "ngrok": "^5.0.0-beta.2",
     "prettier": "^3.2.4",
+    "selfsigned": "^5.5.0",
     "typescript": "^5.2.2",
     "vite": "^6.2.2"
   },

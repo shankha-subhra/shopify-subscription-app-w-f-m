@@ -1,0 +1,259 @@
+{%- if product.selling_plan_groups.size > 0 -%}
+  <div class="custom-subscription-widget" data-product-id="{{ product.id }}">
+    <div class="sw-header">
+      <span class="sw-title">Price Options</span>
+    </div>
+
+    <div class="sw-options">
+      <!-- One-time purchase option -->
+      {%- unless product.requires_selling_plan -%}
+        <label class="sw-option sw-active" data-plan-id="">
+          <div class="sw-radio">
+            <input type="radio" name="sw_plan_selection" value="" checked>
+            <span class="sw-radio-custom"></span>
+          </div>
+          <div class="sw-option-content">
+            <div class="sw-option-title">One-time purchase</div>
+            <div class="sw-option-price-row">
+              <span class="sw-option-price" data-price="{{ product.price | money }}">{{ product.price | money }}</span>
+            </div>
+          </div>
+        </label>
+      {%- endunless -%}
+
+      <!-- Subscription groups -->
+      {%- for group in product.selling_plan_groups -%}
+        {%- assign lowest_price = product.price -%}
+        {%- assign highest_discount = 0 -%}
+        
+        {%- for plan in group.selling_plans -%}
+          {%- for allocation in product.selected_or_first_available_variant.selling_plan_allocations -%}
+            {%- if allocation.selling_plan.id == plan.id -%}
+              {%- if allocation.price < lowest_price -%}
+                {%- assign lowest_price = allocation.price -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          
+          {%- for policy in plan.pricing_policies -%}
+            {%- if policy.value > highest_discount -%}
+              {%- assign highest_discount = policy.value -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endfor -%}
+
+        <label class="sw-option" data-group-id="{{ group.id }}">
+          <div class="sw-radio">
+            <input type="radio" name="sw_plan_selection" value="group_{{ group.id }}">
+            <span class="sw-radio-custom"></span>
+          </div>
+          <div class="sw-option-content">
+            <div class="sw-option-title">{{ group.name }}</div>
+            {%- if highest_discount > 0 -%}
+              <div class="sw-option-discount">Save {{ highest_discount | round }}%{% if group.name contains "Monthly" %} off the regular purchase price{% else %}!{% endif %}</div>
+            {%- endif -%}
+            <div class="sw-option-price-row">
+              <span class="sw-option-price" data-price="{{ lowest_price | money }}">{{ lowest_price | money }}</span>
+              <span class="sw-option-frequency">
+                {%- assign freq_word = group.selling_plans.first.name | split: ' ' | first | downcase -%}
+                {{ freq_word }} / auto-renew
+              </span>
+            </div>
+            
+            <div class="sw-plan-selector" style="display: none;">
+              <select class="sw-select">
+                {%- for plan in group.selling_plans -%}
+                  <option value="{{ plan.id }}">{{ plan.name }}</option>
+                {%- endfor -%}
+              </select>
+            </div>
+          </div>
+        </label>
+      {%- endfor -%}
+    </div>
+    
+    <!-- Hidden input that actually connects to the Add to Cart form -->
+    <input type="hidden" name="selling_plan" form="{{ form_id }}" value="">
+  </div>
+
+  <style>
+    .custom-subscription-widget {
+      margin: 1.5rem 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .sw-header {
+      margin-bottom: 0.75rem;
+    }
+    .sw-title {
+      font-weight: normal;
+      font-size: 0.95rem;
+      color: #333;
+    }
+    .sw-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .sw-option {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1.25rem;
+      border: 1px solid #dcdcdc;
+      border-radius: 0;
+      cursor: pointer;
+      background: #fff;
+    }
+    .sw-radio {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .sw-radio input {
+      opacity: 0;
+      position: absolute;
+      cursor: pointer;
+    }
+    .sw-radio-custom {
+      height: 18px;
+      width: 18px;
+      background-color: #fff;
+      border: 1px solid #777;
+      border-radius: 50%;
+      display: inline-block;
+      position: relative;
+    }
+    .sw-option.sw-active .sw-radio-custom {
+      border-color: #333;
+    }
+    .sw-option.sw-active .sw-radio-custom::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #333;
+      border-radius: 50%;
+    }
+    .sw-option-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .sw-option-title {
+      font-weight: normal;
+      font-size: 1.05rem;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .sw-option-discount {
+      font-size: 0.85rem;
+      color: #555;
+      margin-bottom: 6px;
+    }
+    .sw-option-price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+    }
+    .sw-option-price {
+      font-size: 1.1rem;
+      color: #333;
+      font-weight: normal;
+    }
+    .sw-option-frequency {
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .sw-plan-selector {
+      margin-top: 0.5rem;
+    }
+    .sw-select {
+      width: auto;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 0.85rem;
+      color: #333;
+      cursor: pointer;
+    }
+  </style>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const widget = document.querySelector(".custom-subscription-widget");
+      if (!widget) return;
+
+      const options = widget.querySelectorAll(".sw-option");
+      const hiddenInput = widget.querySelector("input[name='selling_plan']");
+      const productPriceDisplay = document.querySelector(".price-item--regular") || document.querySelector(".product__price"); // Adjust based on theme
+
+      function updateSelection(selectedOption) {
+        options.forEach(opt => opt.classList.remove("sw-active"));
+        selectedOption.classList.add("sw-active");
+
+        const planSelectors = widget.querySelectorAll(".sw-plan-selector");
+        planSelectors.forEach(sel => sel.style.display = "none");
+
+        const selector = selectedOption.querySelector(".sw-plan-selector");
+        if (selector) {
+          selector.style.display = "flex";
+          const selectElement = selector.querySelector("select");
+          hiddenInput.value = selectElement.value;
+        } else {
+          hiddenInput.value = "";
+        }
+
+        // Optional: Update main product price display on the page
+        const priceStr = selectedOption.querySelector(".sw-option-price").getAttribute("data-price");
+        if (productPriceDisplay && priceStr) {
+          productPriceDisplay.innerHTML = priceStr;
+        }
+      }
+
+      options.forEach(option => {
+        option.addEventListener("click", function(e) {
+          if (e.target.tagName.toLowerCase() === "select") return; // Let select clicks pass through
+          
+          const radio = this.querySelector("input[type='radio']");
+          if (radio) radio.checked = true;
+          
+          updateSelection(this);
+        });
+      });
+
+      // Handle select changes inside active option
+      const selects = widget.querySelectorAll(".sw-select");
+      selects.forEach(select => {
+        select.addEventListener("change", function() {
+          hiddenInput.value = this.value;
+        });
+      });
+      
+      // Initialize if we need to (by default One-time is checked)
+      const initialChecked = widget.querySelector("input[type='radio']:checked");
+      if (initialChecked) {
+        updateSelection(initialChecked.closest(".sw-option"));
+      }
+    });
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Subscription Widget",
+  "target": "section",
+  "templates": ["product"],
+  "settings": [
+    {
+      "type": "text",
+      "id": "form_id",
+      "label": "Product Form ID (e.g. product-form-template--1)",
+      "default": "product-form-template--1"
+    }
+  ]
+}
+{% endschema %}
