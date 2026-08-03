@@ -7,6 +7,8 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 - **Custom Subscription Widget**: Beautiful, interactive storefront widget built as a Theme App Extension.
 - **Subscription Rules & Plans**: Merchants can define flexible delivery frequencies and discount policies.
 - **Dashboard Overview**: A premium, ultra-sleek analytics dashboard to track Active Plans, Contracts, and Users.
+- **Advanced Shipping Rules**: Define custom shipping rates based on location (ZIP radius, country, regions), weight, and order value using the Shopify Delivery Customization API.
+- **Customer Reviews System**: Full-featured product reviews with dynamic image uploads to Shopify Files, moderation dashboard, and beautiful storefront widget.
 - **Seamless Checkout**: Fully integrated with Shopify's native checkout and Subscription APIs.
 - **Webhooks**: Automatic background syncing for subscription contract creation and updates.
 
