@@ -95,7 +95,20 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     console.error("Failed to fetch Shopify plan data:", error);
   }
 
-  return json({ plan, shopifyPlan });
+  let backedUpProducts: any[] = [];
+  if (plan.status === "INACTIVE") {
+    const backup = await prisma.subscriptionRuleProduct.findMany({
+      where: { subscriptionRuleId: plan.subscriptionRuleId }
+    });
+    backedUpProducts = backup.map(b => ({
+      id: b.shopifyProductId,
+      title: b.productTitle,
+      handle: b.productHandle,
+      featuredImage: { url: b.productImageUrl }
+    }));
+  }
+
+  return json({ plan, shopifyPlan, backedUpProducts });
 };
 
 export const action = async ({ request, params }: ActionFunctionArgs) => {
@@ -210,8 +223,10 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     const planName = formData.get("planName") as string;
     const frequency = formData.get("frequency") as string;
     const discount = formData.get("discount") as string;
+    const status = formData.get("status") as string || "ACTIVE";
     const submittedProductIds = (formData.get("productIds") as string || "").split(",").filter(Boolean);
     const existingProductIds = (formData.get("existingProductIds") as string || "").split(",").filter(Boolean);
+    const productsJson = formData.get("productsJson") as string;
     
     const discountVal = parseFloat(discount || "0");
     const interval = frequency === "WEEKLY" ? "WEEK" : frequency === "FORTNIGHTLY" ? "WEEK" : "MONTH";
@@ -262,32 +277,69 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return json({ error: updateJson.data.sellingPlanGroupUpdate.userErrors[0].message }, { status: 400 });
     }
 
-    // 2. Add New Products
-    const productsToAdd = submittedProductIds.filter(id => !existingProductIds.includes(id));
-    if (productsToAdd.length > 0) {
-      await admin.graphql(
-        `#graphql
-        mutation sellingPlanGroupAddProducts($id: ID!, $productIds: [ID!]!) {
-          sellingPlanGroupAddProducts(id: $id, productIds: $productIds) {
-            userErrors { message }
-          }
-        }`,
-        { variables: { id: plan.shopifySellingPlanGroupId, productIds: productsToAdd } }
-      );
-    }
+    // 2. Handle Shopify Products & Prisma Backups
+    if (status === "ACTIVE") {
+      // Add New Products
+      const productsToAdd = submittedProductIds.filter(id => !existingProductIds.includes(id));
+      if (productsToAdd.length > 0) {
+        await admin.graphql(
+          `#graphql
+          mutation sellingPlanGroupAddProducts($id: ID!, $productIds: [ID!]!) {
+            sellingPlanGroupAddProducts(id: $id, productIds: $productIds) {
+              userErrors { message }
+            }
+          }`,
+          { variables: { id: plan.shopifySellingPlanGroupId, productIds: productsToAdd } }
+        );
+      }
 
-    // 3. Remove Deselected Products
-    const productsToRemove = existingProductIds.filter(id => !submittedProductIds.includes(id));
-    if (productsToRemove.length > 0) {
-      await admin.graphql(
-        `#graphql
-        mutation sellingPlanGroupRemoveProducts($id: ID!, $productIds: [ID!]!) {
-          sellingPlanGroupRemoveProducts(id: $id, productIds: $productIds) {
-            userErrors { message }
-          }
-        }`,
-        { variables: { id: plan.shopifySellingPlanGroupId, productIds: productsToRemove } }
-      );
+      // Remove Deselected Products
+      const productsToRemove = existingProductIds.filter(id => !submittedProductIds.includes(id));
+      if (productsToRemove.length > 0) {
+        await admin.graphql(
+          `#graphql
+          mutation sellingPlanGroupRemoveProducts($id: ID!, $productIds: [ID!]!) {
+            sellingPlanGroupRemoveProducts(id: $id, productIds: $productIds) {
+              userErrors { message }
+            }
+          }`,
+          { variables: { id: plan.shopifySellingPlanGroupId, productIds: productsToRemove } }
+        );
+      }
+      
+      // Clear any Prisma backups since it's active in Shopify
+      await prisma.subscriptionRuleProduct.deleteMany({ where: { subscriptionRuleId: plan.subscriptionRuleId } });
+    } else {
+      // INACTIVE
+      // Remove ALL attached products from Shopify so they don't show on product page
+      if (existingProductIds.length > 0) {
+        await admin.graphql(
+          `#graphql
+          mutation sellingPlanGroupRemoveProducts($id: ID!, $productIds: [ID!]!) {
+            sellingPlanGroupRemoveProducts(id: $id, productIds: $productIds) {
+              userErrors { message }
+            }
+          }`,
+          { variables: { id: plan.shopifySellingPlanGroupId, productIds: existingProductIds } }
+        );
+      }
+
+      // Save selected products to Prisma
+      await prisma.subscriptionRuleProduct.deleteMany({ where: { subscriptionRuleId: plan.subscriptionRuleId } });
+      if (productsJson) {
+        const fullProducts = JSON.parse(productsJson);
+        for (const p of fullProducts) {
+          await prisma.subscriptionRuleProduct.create({
+            data: {
+              subscriptionRuleId: plan.subscriptionRuleId,
+              shopifyProductId: p.id,
+              productTitle: p.title,
+              productHandle: p.handle || "",
+              productImageUrl: p.featuredImage?.url || p.images?.[0]?.originalSrc || ""
+            }
+          });
+        }
+      }
     }
 
     // 4. Update Prisma (Discount & Frequency)
@@ -302,7 +354,8 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
           interval,
           intervalCount,
           discountValue: discountVal,
-          planName: `${frequency} Delivery`
+          planName: `${frequency} Delivery`,
+          status
         }
       });
       
@@ -320,7 +373,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
     await prisma.sellingPlanGroup.update({
       where: { id: plan.id },
-      data: { groupName: planName, merchantCode: planName }
+      data: { groupName: planName, merchantCode: planName, status }
     });
 
     return redirect("/app?success=plan_updated");
@@ -330,7 +383,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function EditPlan() {
-  const { plan, shopifyPlan } = useLoaderData<typeof loader>();
+  const { plan, shopifyPlan, backedUpProducts } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
   const submit = useSubmit();
@@ -341,12 +394,17 @@ export default function EditPlan() {
   const initialDiscount = plan.sellingPlans?.[0]?.discountValue?.toString() || "0";
 
   // Map existing Shopify products to state
-  const initialProducts = shopifyPlan?.products?.edges?.map((edge: any) => edge.node) || [];
-  const existingProductIds = initialProducts.map((p: any) => p.id).join(",");
+  const initialProducts = plan.status === "INACTIVE" 
+    ? backedUpProducts 
+    : (shopifyPlan?.products?.edges?.map((edge: any) => edge.node) || []);
+  const existingProductIds = plan.status === "ACTIVE" 
+    ? (shopifyPlan?.products?.edges?.map((edge: any) => edge.node.id).join(",") || "")
+    : "";
 
   const [planName, setPlanName] = useState(initialName);
   const [frequency, setFrequency] = useState(initialFreq);
   const [discount, setDiscount] = useState(initialDiscount);
+  const [status, setStatus] = useState(plan.status || "ACTIVE");
   const [selectedProducts, setSelectedProducts] = useState<any[]>(initialProducts);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -369,7 +427,8 @@ export default function EditPlan() {
 
   const handleUpdate = () => {
     const productIds = selectedProducts.map(p => p.id).join(",");
-    submit({ intent: "edit", planName, frequency, discount, productIds, existingProductIds }, { method: "POST" });
+    const productsJson = JSON.stringify(selectedProducts);
+    submit({ intent: "edit", planName, frequency, discount, status, productIds, existingProductIds, productsJson }, { method: "POST" });
   };
 
   const handleToggleStatus = () => {
@@ -410,6 +469,17 @@ export default function EditPlan() {
                         ]}
                         value={frequency}
                         onChange={setFrequency}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Select
+                        label="Status"
+                        options={[
+                          { label: "Active", value: "ACTIVE" },
+                          { label: "Inactive", value: "INACTIVE" },
+                        ]}
+                        value={status}
+                        onChange={setStatus}
                       />
                     </div>
                     <div style={{ flex: 1 }}>

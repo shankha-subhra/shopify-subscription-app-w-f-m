@@ -13,5 +13,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     await db.session.deleteMany({ where: { shop } });
   }
 
+  try {
+    await db.shippingSetting.update({
+      where: { shop },
+      data: { isEnabled: false },
+    });
+  } catch (error) {
+    // Ignore if no setting exists
+  }
+
   return new Response();
 };

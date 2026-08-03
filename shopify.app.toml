@@ -26,9 +26,14 @@ api_version = "2026-07"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products,read_products,write_purchase_options,read_purchase_options,read_own_subscription_contracts,write_own_subscription_contracts,write_customers,read_customers,write_orders,read_orders"
+scopes = "read_customers, write_customers, read_orders, write_orders, read_products, write_products, read_own_subscription_contracts, write_own_subscription_contracts, read_purchase_options, write_purchase_options, read_shipping, write_shipping"
 optional_scopes = [ ]
 use_legacy_install_flow = false
 
 [auth]
 redirect_urls = [ ]
+
+[app_proxy]
+url = "https://stopwatch-research-dove.ngrok-free.dev/api/proxy"
+subpath = "customer-reviews"
+prefix = "apps"

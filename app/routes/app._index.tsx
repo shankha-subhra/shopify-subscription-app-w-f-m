@@ -79,12 +79,29 @@ export default function Dashboard() {
   ));
 
   return (
-    <Page title="Subscription Overview" fullWidth>
+    <Page
+      title="Subscription Overview"
+      fullWidth
+      primaryAction={{
+        content: "Create New Plan",
+        onAction: () => navigate("/app/plans/new")
+      }}
+      secondaryActions={[
+        {
+          content: "Subscription logs",
+          onAction: () => navigate("/app/subscription-logs")
+        },
+        {
+          content: "Recent Subscription Plans",
+          onAction: () => navigate("/app/plans")
+        }
+      ]}
+    >
       <style>{`
         /* Ultra-Premium SaaS Dashboard Styling */
         .dashboard-container {
           font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          padding: 2rem;
+          padding: 0;
         }
         
         .hero-banner {
@@ -233,7 +250,7 @@ export default function Dashboard() {
                     Create New Plan
                   </Button>
                 </div>
-                
+
                 {sellingPlanGroups.length === 0 ? (
                   <div style={{ padding: '3rem 2rem', textAlign: 'center' }}>
                     <Text as="p" tone="subdued">

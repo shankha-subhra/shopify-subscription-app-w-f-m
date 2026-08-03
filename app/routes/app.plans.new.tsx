@@ -24,6 +24,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const frequency = formData.get("frequency");
   const discount = formData.get("discount");
   const productIds = formData.get("productIds");
+  const status = formData.get("status") || "ACTIVE";
 
   // Basic validation
   if (!planName || !frequency || !productIds) {
@@ -67,7 +68,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   };
 
   const resources = {
-    productIds: (productIds as string).split(",")
+    productIds: status === "ACTIVE" ? (productIds as string).split(",") : []
   };
 
   const response = await admin.graphql(
@@ -134,7 +135,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       shopifySellingPlanGroupId,
       groupName: planName as string,
       merchantCode: planName as string,
-      status: "ACTIVE"
+      status: status as string
     }
   });
 
@@ -166,9 +167,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       intervalCount: intervalCount,
       discountType: "PERCENTAGE",
       discountValue: discountVal,
-      status: "ACTIVE"
+      status: status as string
     }
   });
+
+  // Save selected products to Prisma if INACTIVE (since they aren't in Shopify yet)
+  // or if ACTIVE we still can save them to Prisma, but we only strictly NEED them in Prisma when inactive.
+  // We can just save them to Prisma anyway to be safe, or just when INACTIVE.
+  if (status === "INACTIVE") {
+    const productsJson = formData.get("productsJson") as string;
+    if (productsJson) {
+      const fullProducts = JSON.parse(productsJson);
+      for (const p of fullProducts) {
+        await prisma.subscriptionRuleProduct.create({
+          data: {
+            subscriptionRuleId: rule.id,
+            shopifyProductId: p.id,
+            productTitle: p.title,
+            productHandle: p.handle || "",
+            productImageUrl: p.featuredImage?.url || p.images?.[0]?.originalSrc || ""
+          }
+        });
+      }
+    }
+  }
 
   // For now, simulate a successful creation and redirect back to the dashboard
   return redirect("/app?success=plan_created");
@@ -178,6 +200,7 @@ export default function NewPlan() {
   const [planName, setPlanName] = useState("");
   const [frequency, setFrequency] = useState("MONTHLY");
   const [discount, setDiscount] = useState("");
+  const [status, setStatus] = useState("ACTIVE");
   const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   
   const actionData = useActionData<typeof action>();
@@ -195,8 +218,9 @@ export default function NewPlan() {
 
   const handleSubmit = () => {
     const productIds = selectedProducts.map(p => p.id).join(",");
+    const productsJson = JSON.stringify(selectedProducts);
     submit(
-      { planName, frequency, discount, productIds },
+      { planName, frequency, discount, status, productIds, productsJson },
       { method: "POST" }
     );
   };
@@ -244,6 +268,17 @@ export default function NewPlan() {
                         ]}
                         value={frequency}
                         onChange={setFrequency}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Select
+                        label="Status"
+                        options={[
+                          { label: "Active", value: "ACTIVE" },
+                          { label: "Inactive", value: "INACTIVE" },
+                        ]}
+                        value={status}
+                        onChange={setStatus}
                       />
                     </div>
                     <div style={{ flex: 1 }}>

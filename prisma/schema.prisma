@@ -313,3 +313,145 @@ model AuditLog {
 
   @@map("audit_logs")
 }
+
+model ShippingSetting {
+  id                           Int      @id @default(autoincrement())
+  shop                         String   @unique
+  isEnabled                    Boolean  @default(true)
+  quantityThreshold            Int      @default(5)
+  belowThresholdPrice          Decimal  @default(30.00) @db.Decimal(12, 2)
+  atOrAboveThresholdPrice      Decimal  @default(5000.00) @db.Decimal(12, 2)
+  belowThresholdMethodName     String   @default("Standard Shipping")
+  atOrAboveThresholdMethodName String   @default("Bulk Shipping")
+  fallbackEnabled              Boolean  @default(false)
+  fallbackPrice                Decimal? @db.Decimal(12, 2)
+  currency                     String   @default("USD")
+  loggingEnabled               Boolean  @default(true)
+  debugMode                    Boolean  @default(false)
+  carrierServiceId             String?
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+}
+
+model ShippingRule {
+  id                 Int      @id @default(autoincrement())
+  shop               String
+  ruleName           String
+  description        String?
+  countryName        String?
+  countryCode        String?
+  stateName          String?
+  stateCode          String?
+  city               String?
+  postalCode         String?
+  postalCodeFrom     String?
+  postalCodeTo       String?
+  postalCodePattern  String?
+  shippingMethodName String
+  serviceCode        String
+  shippingPrice      Decimal  @db.Decimal(12, 2)
+  currency           String   @default("USD")
+  priority           Int      @default(0)
+  isFreeShipping     Boolean  @default(false)
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([shop])
+  @@index([shop, countryCode])
+  @@index([shop, countryCode, stateCode])
+  @@index([shop, postalCode])
+  @@index([shop, priority])
+}
+
+model ShippingCalculationLog {
+  id                 Int      @id @default(autoincrement())
+  shop               String
+  countryCode        String?
+  stateCode          String?
+  city               String?
+  postalCode         String?
+  cartQuantity       Int
+  matchedRuleId      Int?
+  matchedRuleName    String?
+  calculationSource  String
+  calculatedPrice    Decimal  @db.Decimal(12, 2)
+  currency           String
+  shippingMethodName String
+  status             String
+  errorMessage       String?
+  createdAt          DateTime @default(now())
+
+  @@index([shop])
+  @@index([shop, createdAt])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
+}
+
+model ProductReview {
+  id                 Int          @id @default(autoincrement())
+  shop               String
+  productId          String
+  variantId          String?
+  customerId         String?
+  customerName       String
+  customerEmail      String
+  customerPhone      String?
+  title              String?
+  comment            String       @db.Text
+  rating             Int
+  status             ReviewStatus @default(PENDING)
+  isVerifiedPurchase Boolean      @default(false)
+  verifiedOrderId    String?
+  merchantReply      String?      @db.Text
+  helpfulCount       Int          @default(0)
+  ipHash             String?
+  approvedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  images ProductReviewImage[]
+
+  @@index([shop, productId])
+  @@index([shop, productId, status])
+  @@index([shop, customerId])
+  @@index([shop, createdAt])
+}
+
+model ProductReviewImage {
+  id           Int      @id @default(autoincrement())
+  reviewId     Int
+  imageUrl     String
+  thumbnailUrl String?
+  altText      String?
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  review ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
+}
+
+model ReviewSetting {
+  id                     Int      @id @default(autoincrement())
+  shop                   String   @unique
+  isEnabled              Boolean  @default(true)
+  allowGuestReviews      Boolean  @default(true)
+  guestPhoneRequired     Boolean  @default(false)
+  verifiedPurchasesOnly  Boolean  @default(false)
+  moderationEnabled      Boolean  @default(true)
+  autoApprove            Boolean  @default(false)
+  allowMultipleImages    Boolean  @default(true)
+  maxImages              Int      @default(5)
+  maxImageSizeMb         Int      @default(5)
+  reviewsPerPage         Int      @default(9)
+  showVerifiedBadge      Boolean  @default(true)
+  showRatingDistribution Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
