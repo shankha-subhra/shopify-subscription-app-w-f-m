@@ -1,6 +1,6 @@
-# Shopify Subscription App 
+# Shopify Subscription, Shipping Rates & Customer Reviews App For Local Environment.
 
-A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify App Bridge that allows merchants to seamlessly create, manage, and offer product subscriptions.
+A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify App Bridge that allows merchants to seamlessly create, manage, and offer product subscriptions, set custom shipping rates, and collect customer reviews.
 
 ## Features
 
