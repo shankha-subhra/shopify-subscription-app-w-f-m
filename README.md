@@ -54,14 +54,24 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 
 To start the local development environment, you need two terminal windows:
 
-**Terminal 1 (Ngrok Tunnel):**
+**Terminal 1 (Shopify Dev Server):**
 ```bash
-npx ngrok http --url=your-ngrok-url.ngrok-free.dev 3000
+npx prisma generate
 ```
 
 **Terminal 2 (Shopify Dev Server):**
 ```bash
 npm run dev -- --use-localhost
+```
+
+**Terminal 3 (Shopify Dev Serve):**
+```bash
+npx vite dev --port 3000
+```
+
+**Terminal 4 (Ngrok Tunnel):**
+```bash
+npx ngrok http --url=your-ngrok-url.ngrok-free.dev 3000
 ```
 
 ## Contact & Support

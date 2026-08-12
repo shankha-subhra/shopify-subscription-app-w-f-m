@@ -37,6 +37,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const sellingPlanGroups = await prisma.sellingPlanGroup.findMany({
     where: { shopId: dbShop.id },
+    include: { sellingPlans: true },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
@@ -48,7 +49,12 @@ export default function Dashboard() {
   const { rulesCount, contractsCount, activeGroupsCount, activeUsersCount, shop, sellingPlanGroups } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
-  const rowMarkup = sellingPlanGroups.map((group, index) => (
+  const rowMarkup = sellingPlanGroups.map((group, index) => {
+    const discount = group.sellingPlans && group.sellingPlans.length > 0 
+      ? group.sellingPlans[0].discountValue 
+      : 0;
+
+    return (
     <IndexTable.Row id={group.id.toString()} key={group.id} position={index}>
       <IndexTable.Cell>
         <Text variant="bodyMd" fontWeight="bold" as="span">
@@ -56,6 +62,7 @@ export default function Dashboard() {
         </Text>
       </IndexTable.Cell>
       <IndexTable.Cell>{group.merchantCode}</IndexTable.Cell>
+      <IndexTable.Cell>{discount ? `${discount}%` : 'None'}</IndexTable.Cell>
       <IndexTable.Cell>
         <Badge tone={group.status === "ACTIVE" ? "success" : "critical"}>
           {group.status}
@@ -76,7 +83,7 @@ export default function Dashboard() {
         </InlineStack>
       </IndexTable.Cell>
     </IndexTable.Row>
-  ));
+  )});
 
   return (
     <Page
@@ -110,7 +117,7 @@ export default function Dashboard() {
           color: #1f2937;
           padding: 2.5rem;
           border-radius: 20px;
-          margin-bottom: 2rem;
+          margin-bottom: 1rem;
           box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
           position: relative;
           overflow: hidden;
@@ -119,7 +126,7 @@ export default function Dashboard() {
           content: '';
           position: absolute;
           top: -50%; left: -50%; width: 200%; height: 200%;
-          background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+          background: unset;
           pointer-events: none;
         }
         .hero-title {
@@ -264,6 +271,7 @@ export default function Dashboard() {
                     headings={[
                       { title: 'Plan Name' },
                       { title: 'Merchant Code' },
+                      { title: 'Discount' },
                       { title: 'Status' },
                       { title: 'Created At' },
                       { title: 'Actions' },

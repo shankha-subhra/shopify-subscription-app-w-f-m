@@ -83,7 +83,7 @@ export default function CreateShippingRule() {
                 <TextField label="Shipping Method Name" name="shippingMethodName" value={formState.shippingMethodName} onChange={(v) => handleChange(v, "shippingMethodName")} autoComplete="off" requiredIndicator />
                 <TextField label="Shipping Price" name="shippingPrice" type="number" value={formState.shippingPrice} onChange={(v) => handleChange(v, "shippingPrice")} autoComplete="off" requiredIndicator />
                 <TextField label="Priority" name="priority" type="number" value={formState.priority} onChange={(v) => handleChange(v, "priority")} helpText="Higher priority overrides lower ones if specificity is the same" autoComplete="off" />
-                
+
                 <Button submit variant="primary" loading={isSaving}>
                   Save Rule
                 </Button>

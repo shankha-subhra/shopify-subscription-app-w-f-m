@@ -96,13 +96,6 @@
           <textarea name="comment" required minlength="10" maxlength="5000" rows="4" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; resize: vertical;"></textarea>
         </div>
 
-        <div style="margin-bottom: 1.5rem;">
-          <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem;">Images (Optional, Max 5)</label>
-          <input type="file" name="images" multiple accept="image/jpeg, image/png, image/webp" id="review-images-{{ block.id }}" onchange="previewImages(this, '{{ block.id }}')" style="display: block; width: 100%; font-size: 0.875rem;">
-          <p style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem;">JPG, PNG, WEBP (Max 5MB each)</p>
-          <div id="image-preview-container-{{ block.id }}" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;"></div>
-        </div>
-
         <div id="form-error-{{ block.id }}" style="display: none; color: #dc2626; font-size: 0.875rem; margin-bottom: 1rem; padding: 0.75rem; background: #fee2e2; border-radius: 0.375rem;"></div>
         <div id="form-success-{{ block.id }}" style="display: none; color: #059669; font-size: 0.875rem; margin-bottom: 1rem; padding: 0.75rem; background: #d1fae5; border-radius: 0.375rem;"></div>
 
@@ -239,40 +232,6 @@
     loadReviews('{{ block.id }}');
   });
 
-  function previewImages(input, blockId) {
-    const container = document.getElementById('image-preview-container-' + blockId);
-    container.innerHTML = '';
-    
-    if (input.files && input.files.length > 5) {
-      alert("Maximum 5 images allowed.");
-      input.value = '';
-      return;
-    }
-
-    for (let i = 0; i < input.files.length; i++) {
-      const file = input.files[i];
-      if (file.size > 5 * 1024 * 1024) {
-        alert("File " + file.name + " is too large. Max 5MB.");
-        input.value = '';
-        container.innerHTML = '';
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = document.createElement('img');
-        img.src = e.target.result;
-        img.style.width = '60px';
-        img.style.height = '60px';
-        img.style.objectFit = 'cover';
-        img.style.borderRadius = '0.375rem';
-        img.style.border = '1px solid #d1d5db';
-        container.appendChild(img);
-      }
-      reader.readAsDataURL(file);
-    }
-  }
-
   async function submitReview(event, blockId) {
     event.preventDefault();
     
@@ -304,45 +263,6 @@
     if (widget.dataset.customerId) {
       payload.customerId = widget.dataset.customerId;
     }
-    
-    // Process Images directly to AWS via presigned URLs
-    payload.resourceUrls = [];
-    const fileInput = document.getElementById('review-images-' + blockId);
-    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-      const files = Array.from(fileInput.files).slice(0, 5); // Max 5 images
-      
-      for (const file of files) {
-        // 1. Generate AWS Upload Target
-        const targetRes = await fetch('/apps/customer-reviews/generate-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: file.name, mimeType: file.type })
-        });
-        
-        if (!targetRes.ok) continue;
-        const targetData = await targetRes.json();
-        
-        if (targetData.success && targetData.target) {
-          const target = targetData.target;
-          
-          // 2. Upload directly to AWS Target
-          const uploadFormData = new FormData();
-          target.parameters.forEach(param => {
-            uploadFormData.append(param.name, param.value);
-          });
-          uploadFormData.append('file', file);
-          
-          const uploadRes = await fetch(target.url, {
-            method: 'POST',
-            body: uploadFormData
-          });
-          
-          if (uploadRes.ok) {
-            payload.resourceUrls.push(target.resourceUrl);
-          }
-        }
-      }
-    }
 
     try {
       const response = await fetch('/apps/customer-reviews/submit', {
@@ -359,7 +279,6 @@
         successEl.innerText = result.message || "Thank you. Your review has been submitted for approval.";
         successEl.style.display = 'block';
         form.reset();
-        document.getElementById('image-preview-container-' + blockId).innerHTML = '';
         // Reset star rating UI
         const select = document.querySelector('.customer-review-rating-' + blockId);
         if (select && select.starRating) {

@@ -26,7 +26,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const rating = parseInt(payload.rating as string, 10);
     const title = payload.title as string;
     const comment = payload.comment as string;
-    const resourceUrls = payload.resourceUrls as string[]; // from AWS uploads
     
     const shopDomain = session.shop;
 
@@ -125,41 +124,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         status: initialStatus as any
       }
     });
-
-    if (resourceUrls && resourceUrls.length > 0) {
-       for (const resourceUrl of resourceUrls) {
-         if (!resourceUrl) continue;
-         
-         const fileCreateResponse = await admin.graphql(
-           `mutation fileCreate($files: [FileCreateInput!]!) {
-             fileCreate(files: $files) {
-               files {
-                 id
-                 preview { image { url } }
-               }
-             }
-           }`,
-           {
-             variables: {
-               files: [{ alt: "Review Image", contentType: "IMAGE", originalSource: resourceUrl }]
-             }
-           }
-         );
-         
-         const fileCreateJson = await fileCreateResponse.json();
-         const createdFile = fileCreateJson.data?.fileCreate?.files?.[0];
-         let finalUrl = createdFile?.preview?.image?.url || resourceUrl;
-         
-         await prisma.productReviewImage.create({
-           data: {
-             reviewId: review.id,
-             imageUrl: finalUrl,
-             thumbnailUrl: finalUrl,
-             altText: "Review Image"
-           }
-         });
-       }
-    }
 
     return json({ 
       success: true, 

@@ -1,12 +1,38 @@
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
+import fs from "fs";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  // Try to log the raw incoming request before authentication
+  try {
+    const clonedReq = request.clone();
+    const topic = clonedReq.headers.get("x-shopify-topic") || "UNKNOWN";
+    const shop = clonedReq.headers.get("x-shopify-shop-domain") || "UNKNOWN";
+    let payloadStr = "UNABLE_TO_READ_BODY";
+    try {
+      const body = await clonedReq.json();
+      payloadStr = JSON.stringify(body, null, 2);
+    } catch(e) {}
+    
+    const logData = `[${new Date().toISOString()}] RAW WEBHOOK ARRIVED\nTOPIC: ${topic}\nSHOP: ${shop}\nPAYLOAD:\n${payloadStr}\n\n----------------------------------------\n\n`;
+    fs.appendFileSync("webhook_trigger.log", logData);
+  } catch (err) {
+    console.error("Failed to log raw webhook", err);
+  }
+
   const { topic, shop, session, admin, payload } = await authenticate.webhook(request);
 
   if (!admin) {
     return new Response();
+  }
+
+  // Log the incoming payload to a file for debugging
+  try {
+    const logData = `[${new Date().toISOString()}] TOPIC: ${topic}\nPAYLOAD:\n${JSON.stringify(payload, null, 2)}\n\n----------------------------------------\n\n`;
+    fs.appendFileSync("webhook_trigger.log", logData);
+  } catch (err) {
+    console.error("Failed to write to webhook_trigger.log", err);
   }
 
   const dbShop = await prisma.shop.findFirst({ where: { shopDomain: shop } });

@@ -13,7 +13,7 @@
   border-radius: 16px;
   padding: 3rem 2rem;
   color: white;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   box-shadow: 0 20px 40px -15px rgba(168, 85, 247, 0.5);
   position: relative;
   overflow: hidden;
@@ -26,7 +26,7 @@
   right: -10%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -106,8 +106,15 @@
 
 /* Animations */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-up {
@@ -115,6 +122,14 @@
   opacity: 0;
 }
 
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.delay-3 {
+  animation-delay: 0.3s;
+}

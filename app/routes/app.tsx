@@ -3,6 +3,7 @@ import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
+import { Box } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
@@ -30,7 +31,9 @@ export default function App() {
         <Link to="/app/reviews">Customer Reviews</Link>
         <Link to="/app/review-settings">Review Settings</Link>
       </NavMenu>
-      <Outlet />
+      <Box paddingBlockEnd="400">
+        <Outlet />
+      </Box>
     </AppProvider>
   );
 }

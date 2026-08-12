@@ -28,7 +28,10 @@ function normalizeCity(value?: string | null) {
 }
 
 function matchPostalCode(rule: Rule, destZip: string | null): boolean | null {
+  const hasPostalCodeRule = rule.postalCode || rule.postalCodeFrom || rule.postalCodeTo || rule.postalCodePattern;
+  if (!hasPostalCodeRule) return null;
   if (!destZip) return false;
+  
   const normalizedDestZip = normalize(destZip)!.replace(/\s+/g, "");
 
   // 1. Exact match

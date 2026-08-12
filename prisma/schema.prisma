@@ -30,7 +30,7 @@ model Session {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@map("shopify_sessions")
+  @@map("session")
   @@index([shop])
 }
 

@@ -117,7 +117,7 @@
             </span>
           </span>
 
-          <span
+          <div
             class="sw-option-content"
             style="
               display: flex;
@@ -126,6 +126,7 @@
               justify-content: space-between;
               min-width: 0;
               gap: 1.5rem;
+              width: 100%;
             "
           >
             <span
@@ -150,9 +151,35 @@
             >
               {{ current_variant.price | money }}
             </span>
-          </span>
+          </div>
         </label>
       {%- endunless -%}
+
+      {%- assign max_discount_percentage = 0 -%}
+      {%- for group in product.selling_plan_groups -%}
+        {%- for plan in group.selling_plans -%}
+          {%- assign temp_plan_allocation = blank -%}
+          {%- for allocation in current_variant.selling_plan_allocations -%}
+            {%- if allocation.selling_plan.id == plan.id -%}
+              {%- assign temp_plan_allocation = allocation -%}
+              {%- break -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {%- if temp_plan_allocation != blank -%}
+            {%- assign temp_compare_price = temp_plan_allocation.compare_at_price -%}
+            {%- if temp_compare_price == blank or temp_compare_price == 0 -%}
+              {%- assign temp_compare_price = current_variant.price -%}
+            {%- endif -%}
+            {%- if temp_compare_price > temp_plan_allocation.price -%}
+              {%- assign temp_discount_amount = temp_compare_price | minus: temp_plan_allocation.price -%}
+              {%- assign temp_discount_percentage = temp_discount_amount | times: 100.0 | divided_by: temp_compare_price | round -%}
+              {%- if temp_discount_percentage > max_discount_percentage -%}
+                {%- assign max_discount_percentage = temp_discount_percentage -%}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endfor -%}
 
       {%- for group in product.selling_plan_groups -%}
         {%- for plan in group.selling_plans -%}
@@ -248,7 +275,7 @@
                 ></span>
               </span>
 
-              <span
+              <div
                 class="sw-option-content"
                 style="
                   display: flex;
@@ -257,6 +284,7 @@
                   justify-content: space-between;
                   min-width: 0;
                   gap: 1.5rem;
+                  width: 100%;
                 "
               >
                 <span
@@ -293,6 +321,27 @@
                   </span>
 
                   {%- if discount_percentage > 0 -%}
+                    {%- if discount_percentage == max_discount_percentage and max_discount_percentage > 0 -%}
+                      <span
+                        class="sw-best-offer"
+                        style="
+                          display: inline-flex;
+                          align-items: center;
+                          justify-content: center;
+                          padding: 0.45rem 0.9rem;
+                          border-radius: 999px;
+                          background: #fee2e2;
+                          color: #b91c1c;
+                          font-size: 1.1rem;
+                          font-weight: 800;
+                          line-height: 1.2;
+                          white-space: nowrap;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Best Offer
+                      </span>
+                    {%- endif -%}
                     <span
                       style="
                         display: inline-flex;
@@ -312,7 +361,7 @@
                     </span>
                   {%- endif -%}
                 </span>
-              </span>
+              </div>
             </label>
           {%- endif -%}
         {%- endfor -%}

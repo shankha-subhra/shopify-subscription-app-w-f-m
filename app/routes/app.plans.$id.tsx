@@ -123,6 +123,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   const plan = await prisma.sellingPlanGroup.findFirst({
     where: { id: planId, shopId: dbShop?.id },
+    include: { sellingPlans: true },
   });
 
   if (!plan || !dbShop) return json({ error: "Plan not found" }, { status: 404 });

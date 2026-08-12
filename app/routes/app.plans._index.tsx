@@ -17,6 +17,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const plans = await prisma.sellingPlanGroup.findMany({
     where: { shopId: dbShop.id },
+    include: { sellingPlans: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -28,7 +29,12 @@ export default function PlansList() {
   const navigate = useNavigate();
 
   const rowMarkup = plans.map(
-    (plan, index) => (
+    (plan, index) => {
+      const discount = plan.sellingPlans && plan.sellingPlans.length > 0
+        ? plan.sellingPlans[0].discountValue
+        : 0;
+      
+      return (
       <IndexTable.Row id={plan.id.toString()} key={plan.id} position={index}>
         <IndexTable.Cell>
           <Text variant="bodyMd" fontWeight="bold" as="span">
@@ -36,6 +42,7 @@ export default function PlansList() {
           </Text>
         </IndexTable.Cell>
         <IndexTable.Cell>{plan.merchantCode}</IndexTable.Cell>
+        <IndexTable.Cell>{discount ? `${discount}%` : 'None'}</IndexTable.Cell>
         <IndexTable.Cell>
           <Badge tone={plan.status === "ACTIVE" ? "success" : "critical"}>
             {plan.status}
@@ -56,7 +63,7 @@ export default function PlansList() {
           </div>
         </IndexTable.Cell>
       </IndexTable.Row>
-    ),
+    )}
   );
 
   return (
@@ -72,6 +79,7 @@ export default function PlansList() {
           headings={[
             { title: 'Plan Name' },
             { title: 'Merchant Code' },
+            { title: 'Discount' },
             { title: 'Status' },
             { title: 'Created At' },
             { title: 'Actions' },

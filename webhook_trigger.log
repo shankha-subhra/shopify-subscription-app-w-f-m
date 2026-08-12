@@ -1,0 +1,54 @@
+[2026-08-12T09:15:20.242Z] RAW WEBHOOK ARRIVED (CREATE)
+TOPIC: subscription_contracts/create
+SHOP: app-testing-subscription.myshopify.com
+PAYLOAD:
+{
+  "admin_graphql_api_id": "gid://shopify/SubscriptionContract/87392125299",
+  "id": 87392125299,
+  "billing_policy": {
+    "interval": "week",
+    "interval_count": 2,
+    "min_cycles": null,
+    "max_cycles": null
+  },
+  "currency_code": "AUD",
+  "customer_id": 27541487780211,
+  "admin_graphql_api_customer_id": "gid://shopify/Customer/27541487780211",
+  "delivery_policy": {
+    "interval": "week",
+    "interval_count": 2
+  },
+  "status": "active",
+  "admin_graphql_api_origin_order_id": "gid://shopify/Order/16855293657459",
+  "origin_order_id": 16855293657459,
+  "revision_id": "1306071433587"
+}
+
+----------------------------------------
+
+[2026-08-12T09:15:20.287Z] TOPIC: SUBSCRIPTION_CONTRACTS_CREATE
+PAYLOAD:
+{
+  "admin_graphql_api_id": "gid://shopify/SubscriptionContract/87392125299",
+  "id": 87392125299,
+  "billing_policy": {
+    "interval": "week",
+    "interval_count": 2,
+    "min_cycles": null,
+    "max_cycles": null
+  },
+  "currency_code": "AUD",
+  "customer_id": 27541487780211,
+  "admin_graphql_api_customer_id": "gid://shopify/Customer/27541487780211",
+  "delivery_policy": {
+    "interval": "week",
+    "interval_count": 2
+  },
+  "status": "active",
+  "admin_graphql_api_origin_order_id": "gid://shopify/Order/16855293657459",
+  "origin_order_id": 16855293657459,
+  "revision_id": "1306071433587"
+}
+
+----------------------------------------
+
