@@ -1,4 +1,4 @@
-# Shopify Subscription App
+# Shopify Subscription App 
 
 A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify App Bridge that allows merchants to seamlessly create, manage, and offer product subscriptions.
 
