@@ -26,6 +26,26 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 - Node.js (v18+)
 - Docker (for MySQL database)
 - Shopify Partner Account
+- ngrok (installed globally on your system)
+
+### Environment Variables
+
+Create a `.env` file in the root directory with the following configuration:
+
+```env
+NODE_ENV=development
+
+SHOPIFY_API_KEY=
+SHOPIFY_API_SECRET=
+SHOPIFY_APP_URL=https://your-app-name.ngrok-free.app
+SCOPES=write_products,read_products,write_customers,read_customers,write_orders,read_orders,write_selling_plan_groups,read_selling_plan_groups
+
+DATABASE_URL="mysql://root:password@127.0.0.1:3306/shopify_subscription_app"
+TEST_DATABASE_URL="mysql://root:password@127.0.0.1:3306/shopify_subscription_app_test"
+
+SESSION_SECRET=
+NGROK_AUTHTOKEN=
+```
 
 ### Installation
 
