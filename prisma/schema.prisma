@@ -455,3 +455,177 @@ model ReviewSetting {
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
+
+model NetSuiteConnection {
+  id               Int       @id @default(autoincrement())
+  shop             String    @unique
+  accountId        String    @map("account_id")
+  clientId         String    @map("client_id")
+  clientSecret     String    @map("client_secret")
+  accessToken      String?   @map("access_token") @db.Text
+  refreshToken     String?   @map("refresh_token") @db.Text
+  tokenExpiresAt   DateTime? @map("token_expires_at")
+  status           String    @default("DISCONNECTED")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("netsuite_connections")
+  @@index([shop])
+}
+
+model NetSuiteEntityMapping {
+  id                 Int       @id @default(autoincrement())
+  shop               String
+  entityType         String    @map("entity_type")
+  netsuiteId         String    @map("netsuite_id")
+  shopifyId          String    @map("shopify_id")
+  netsuiteExternalId String?   @map("netsuite_external_id")
+  sku                String?
+  lastSyncedAt       DateTime? @map("last_synced_at")
+  netsuiteUpdatedAt  DateTime? @map("netsuite_updated_at")
+  shopifyUpdatedAt   DateTime? @map("shopify_updated_at")
+  syncHash           String?   @map("sync_hash")
+  status             String    @default("SYNCED")
+
+  @@map("netsuite_entity_mappings")
+  @@index([shop, entityType])
+  @@index([shop, shopifyId])
+  @@index([shop, netsuiteId])
+}
+
+model NetSuiteSyncJob {
+  id               Int       @id @default(autoincrement())
+  shop             String
+  entityType       String    @map("entity_type")
+  direction        String
+  operation        String
+  status           String    @default("PENDING")
+  totalRecords     Int       @default(0) @map("total_records")
+  processedRecords Int       @default(0) @map("processed_records")
+  successRecords   Int       @default(0) @map("success_records")
+  failedRecords    Int       @default(0) @map("failed_records")
+  startedAt        DateTime? @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+
+  @@map("netsuite_sync_jobs")
+  @@index([shop, status])
+}
+
+model NetSuiteSyncLog {
+  id              Int      @id @default(autoincrement())
+  syncJobId       Int      @map("sync_job_id")
+  entityType      String   @map("entity_type")
+  netsuiteId      String?  @map("netsuite_id")
+  shopifyId       String?  @map("shopify_id")
+  action          String
+  status          String
+  requestPayload  String?  @db.Text @map("request_payload")
+  responsePayload String?  @db.Text @map("response_payload")
+  errorMessage    String?  @db.Text @map("error_message")
+  retryCount      Int      @default(0) @map("retry_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("netsuite_sync_logs")
+  @@index([syncJobId])
+}
+
+model NetSuiteSyncSetting {
+  id                 Int      @id @default(autoincrement())
+  shop               String   @unique
+  syncProducts       Boolean  @default(false) @map("sync_products")
+  syncCustomers      Boolean  @default(false) @map("sync_customers")
+  syncOrders         Boolean  @default(false) @map("sync_orders")
+  syncCategories     Boolean  @default(false) @map("sync_categories")
+  syncInventory      Boolean  @default(false) @map("sync_inventory")
+  syncPrices         Boolean  @default(false) @map("sync_prices")
+  productDirection   String   @default("NETSUITE_TO_SHOPIFY") @map("product_direction")
+  customerDirection  String   @default("TWO_WAY") @map("customer_direction")
+  orderDirection     String   @default("SHOPIFY_TO_NETSUITE") @map("order_direction")
+  syncInterval       Int      @default(15) @map("sync_interval")
+
+  @@map("netsuite_sync_settings")
+}
+
+model ExternalSyncMapping {
+  id                 Int       @id @default(autoincrement())
+  shop               String
+  entityType         String    @map("entity_type")
+  externalId         String    @map("external_id")
+  parentExternalId   String?   @map("parent_external_id")
+  shopifyId          String?   @map("shopify_id")
+  secondaryShopifyId String?   @map("secondary_shopify_id")
+  sku                String?
+  email              String?
+  syncHash           String?   @map("sync_hash")
+  status             String    @default("SYNCED")
+  lastSyncedAt       DateTime? @map("last_synced_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@map("external_sync_mappings")
+  @@unique([shop, entityType, externalId])
+  @@index([shop, shopifyId])
+  @@index([shop, entityType])
+}
+
+model ExternalSyncJob {
+  id               Int       @id @default(autoincrement())
+  shop             String
+  jobName          String    @map("job_name")
+  status           String    @default("pending")
+  totalRecords     Int       @default(0) @map("total_records")
+  processedRecords Int       @default(0) @map("processed_records")
+  createdRecords   Int       @default(0) @map("created_records")
+  updatedRecords   Int       @default(0) @map("updated_records")
+  skippedRecords   Int       @default(0) @map("skipped_records")
+  failedRecords    Int       @default(0) @map("failed_records")
+  startedAt        DateTime? @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("external_sync_jobs")
+  @@index([shop, status])
+}
+
+model ExternalSyncLog {
+  id              Int      @id @default(autoincrement())
+  shop            String
+  syncJobId       Int?     @map("sync_job_id")
+  entityType      String   @map("entity_type")
+  externalId      String?  @map("external_id")
+  shopifyId       String?  @map("shopify_id")
+  endpoint        String?
+  status          String
+  requestPayload  String?  @db.Text @map("request_payload")
+  responsePayload String?  @db.Text @map("response_payload")
+  errorMessage    String?  @db.Text @map("error_message")
+  retryCount      Int      @default(0) @map("retry_count")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("external_sync_logs")
+  @@index([syncJobId])
+  @@index([shop, entityType])
+}
+
+model ExternalSyncSetting {
+  id                 Int      @id @default(autoincrement())
+  shop               String   @unique
+  apiUrl             String   @default("https://fakestoreapi.noksha.dev/api") @map("api_url")
+  apiKey             String?  @map("api_key")
+  syncProducts       Boolean  @default(true) @map("sync_products")
+  syncCustomers      Boolean  @default(true) @map("sync_customers")
+  syncOrders         Boolean  @default(true) @map("sync_orders")
+  syncCategories     Boolean  @default(true) @map("sync_categories")
+  syncInventory      Boolean  @default(true) @map("sync_inventory")
+  syncCoupons        Boolean  @default(true) @map("sync_coupons")
+  migrationMode      String   @default("IMPORT_NEW_UPDATE_EXISTING") @map("migration_mode")
+  
+  limitCategories    Int      @default(0) @map("limit_categories")
+  limitProducts      Int      @default(0) @map("limit_products")
+  limitCustomers     Int      @default(0) @map("limit_customers")
+  limitOrders        Int      @default(0) @map("limit_orders")
+  limitCoupons       Int      @default(0) @map("limit_coupons")
+
+  @@map("external_sync_settings")
+}

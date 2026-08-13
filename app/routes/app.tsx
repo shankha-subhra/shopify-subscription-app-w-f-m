@@ -30,6 +30,8 @@ export default function App() {
         <Link to="/app/shipping-settings">Shipping Settings</Link>
         <Link to="/app/reviews">Customer Reviews</Link>
         <Link to="/app/review-settings">Review Settings</Link>
+        {/* <Link to="/app/netsuite">NetSuite Integration</Link> */}
+        <Link to="/app/migration">Data Migration</Link>
       </NavMenu>
       <Box paddingBlockEnd="400">
         <Outlet />

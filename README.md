@@ -11,6 +11,8 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 - **Customer Reviews System**: Full-featured product reviews with dynamic image uploads to Shopify Files, moderation dashboard, and beautiful storefront widget.
 - **Seamless Checkout**: Fully integrated with Shopify's native checkout and Subscription APIs.
 - **Webhooks**: Automatic background syncing for subscription contract creation and updates.
+- **Data Migration Engine**: Robust synchronization system that imports Custom Products (with dynamic variants, image swatches, and distributed inventory), Customers, Orders, Categories, and Discount Coupons directly into Shopify from external APIs.
+- **NetSuite Integration (WIP)**: Note that the NetSuite synchronization integration is currently in progress and is not fully implemented yet.
 
 ## Tech Stack
 
@@ -24,6 +26,7 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 
 ### Prerequisites
 - Node.js (v18+)
+- XAMPP
 - Docker (for MySQL database)
 - Shopify Partner Account
 - ngrok (installed globally on your system)

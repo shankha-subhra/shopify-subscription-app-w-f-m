@@ -1,0 +1,202 @@
+
+[2026-08-13T13:56:29.897Z] - FETCH-COUPONS ==================
+URL: GET https://fakestoreapi.noksha.dev/api/coupons
+INPUT: null
+OUTPUT: [
+  {
+    "_id": 1,
+    "code": "SAVE10",
+    "discountType": "Percentage",
+    "discountValue": 10,
+    "minOrderAmount": 50,
+    "expiryDate": "2025-12-31T23:59:59Z",
+    "status": "Active",
+    "createdAt": "2025-06-01T08:00:00Z"
+  },
+  {
+    "_id": 2,
+    "code": "FLAT20",
+    "discountType": "Fixed",
+    "discountValue": 20,
+    "minOrderAmount": 100,
+    "expiryDate": "2025-06-30T23:59:59Z",
+    "status": "Active",
+    "createdAt": "2025-06-02T09:00:00Z"
+  },
+  {
+    "_id": 3,
+    "code": "SUMMER15",
+    "discountType": "Percentage",
+    "discountValue": 15,
+    "minOrderAmount": 75,
+    "expiryDate": "2025-08-31T23:59:59Z",
+    "status": "Active",
+    "createdAt": "2025-06-03T10:00:00Z"
+  },
+  {
+    "_id": 4,
+    "code": "FREESHIP",
+    "discountType": "Fixed",
+    "discountValue": 10,
+    "minOrderAmount": 50,
+    "expiryDate": "2025-07-15T23:59:59Z",
+    "status": "Active",
+    "createdAt": "2025-06-04T11:00:00Z"
+  },
+  {
+    "_id": 5,
+    "code": "WELCOME25",
+    "discountType": "Percentage",
+    "discountValue": 25,
+    "minOrderAmount": 200,
+    "expiryDate": "2025-12-31T23:59:59Z",
+    "status": "Active",
+    "createdAt": "2025-06-05T12:00:00Z"
+  }
+]
+==================================================
+
+[2026-08-13T13:56:30.586Z] - COUPON-CREATE ==================
+URL: POST https://app-testing-subscription.myshopify.com/admin/api/2025-01/graphql.json
+INPUT: {
+  "title": "SAVE10",
+  "code": "SAVE10",
+  "startsAt": "2026-08-13T12:56:29.909Z",
+  "customerSelection": {
+    "all": true
+  },
+  "customerGets": {
+    "value": {
+      "percentage": 0.1
+    },
+    "items": {
+      "all": true
+    }
+  },
+  "usageLimit": 100
+}
+OUTPUT: {
+  "discountCodeBasicCreate": {
+    "codeDiscountNode": {
+      "id": "gid://shopify/DiscountCodeNode/1778240029043"
+    },
+    "userErrors": []
+  }
+}
+==================================================
+
+[2026-08-13T13:56:31.150Z] - COUPON-CREATE ==================
+URL: POST https://app-testing-subscription.myshopify.com/admin/api/2025-01/graphql.json
+INPUT: {
+  "title": "FLAT20",
+  "code": "FLAT20",
+  "startsAt": "2026-08-13T12:56:30.596Z",
+  "customerSelection": {
+    "all": true
+  },
+  "customerGets": {
+    "value": {
+      "percentage": 0.1
+    },
+    "items": {
+      "all": true
+    }
+  },
+  "usageLimit": 100
+}
+OUTPUT: {
+  "discountCodeBasicCreate": {
+    "codeDiscountNode": {
+      "id": "gid://shopify/DiscountCodeNode/1778240061811"
+    },
+    "userErrors": []
+  }
+}
+==================================================
+
+[2026-08-13T13:56:31.695Z] - COUPON-CREATE ==================
+URL: POST https://app-testing-subscription.myshopify.com/admin/api/2025-01/graphql.json
+INPUT: {
+  "title": "SUMMER15",
+  "code": "SUMMER15",
+  "startsAt": "2026-08-13T12:56:31.159Z",
+  "customerSelection": {
+    "all": true
+  },
+  "customerGets": {
+    "value": {
+      "percentage": 0.1
+    },
+    "items": {
+      "all": true
+    }
+  },
+  "usageLimit": 100
+}
+OUTPUT: {
+  "discountCodeBasicCreate": {
+    "codeDiscountNode": {
+      "id": "gid://shopify/DiscountCodeNode/1778240094579"
+    },
+    "userErrors": []
+  }
+}
+==================================================
+
+[2026-08-13T13:56:32.222Z] - COUPON-CREATE ==================
+URL: POST https://app-testing-subscription.myshopify.com/admin/api/2025-01/graphql.json
+INPUT: {
+  "title": "FREESHIP",
+  "code": "FREESHIP",
+  "startsAt": "2026-08-13T12:56:31.704Z",
+  "customerSelection": {
+    "all": true
+  },
+  "customerGets": {
+    "value": {
+      "percentage": 0.1
+    },
+    "items": {
+      "all": true
+    }
+  },
+  "usageLimit": 100
+}
+OUTPUT: {
+  "discountCodeBasicCreate": {
+    "codeDiscountNode": {
+      "id": "gid://shopify/DiscountCodeNode/1778240127347"
+    },
+    "userErrors": []
+  }
+}
+==================================================
+
+[2026-08-13T13:56:32.865Z] - COUPON-CREATE ==================
+URL: POST https://app-testing-subscription.myshopify.com/admin/api/2025-01/graphql.json
+INPUT: {
+  "title": "WELCOME25",
+  "code": "WELCOME25",
+  "startsAt": "2026-08-13T12:56:32.229Z",
+  "customerSelection": {
+    "all": true
+  },
+  "customerGets": {
+    "value": {
+      "percentage": 0.1
+    },
+    "items": {
+      "all": true
+    }
+  },
+  "usageLimit": 100
+}
+OUTPUT: {
+  "discountCodeBasicCreate": {
+    "codeDiscountNode": {
+      "id": "gid://shopify/DiscountCodeNode/1778240160115"
+    },
+    "userErrors": []
+  }
+}
+==================================================
