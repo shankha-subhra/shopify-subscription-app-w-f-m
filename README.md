@@ -2,6 +2,11 @@
 
 A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify App Bridge that allows merchants to seamlessly create, manage, and offer product subscriptions, set custom shipping rates, and collect customer reviews.
 
+## Demo & Portfolio
+
+- **[Custom Shopify App Demo Video](https://www.awesomescreenshot.com/video/55205910?key=18e474e9c2a4647576bfb10bd20b07f2)**
+- **[Custom Shopify App Portfolio / Screenshots](https://drive.google.com/drive/folders/1bviFXHZHOArA-hbcAnFTnsfF3RxA_0tP?usp=sharing)**
+
 ## Features
 
 - **Custom Subscription Widget**: Beautiful, interactive storefront widget built as a Theme App Extension.
