@@ -1,19 +1,19 @@
 {%- if product.selling_plan_groups.size > 0 -%}
   {%- assign current_variant = product.selected_or_first_available_variant -%}
   {%- assign widget_id = 'subscription-widget-' | append: block.id -%}
-  {%- assign radio_name = 'selling-plan-selection-' | append: block.id -%}
+  {%- assign radio_name = 'selling_plan' -%}
 
   <div
     id="{{ widget_id }}"
     class="custom-subscription-widget"
     data-product-id="{{ product.id }}"
-    data-form-id="{{ block.settings.form_id | escape }}"
     style="
       width: 100%;
       margin: 1.5rem 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     "
   >
+
     {%- if block.settings.heading != blank -%}
       <div style="margin-bottom: 1rem;">
         <span
@@ -38,10 +38,10 @@
         gap: 1rem;
       "
     >
+
       {%- unless product.requires_selling_plan -%}
         <label
           class="sw-option sw-active"
-          data-selling-plan-id=""
           data-price="{{ current_variant.price | money | escape }}"
           style="
             display: flex;
@@ -75,6 +75,7 @@
               type="radio"
               name="{{ radio_name }}"
               value=""
+              form="product-form-{{ section.id }}"
               checked
               style="
                 position: absolute;
@@ -156,33 +157,56 @@
       {%- endunless -%}
 
       {%- assign max_discount_percentage = 0 -%}
+
       {%- for group in product.selling_plan_groups -%}
         {%- for plan in group.selling_plans -%}
+
           {%- assign temp_plan_allocation = blank -%}
+
           {%- for allocation in current_variant.selling_plan_allocations -%}
             {%- if allocation.selling_plan.id == plan.id -%}
               {%- assign temp_plan_allocation = allocation -%}
               {%- break -%}
             {%- endif -%}
           {%- endfor -%}
+
           {%- if temp_plan_allocation != blank -%}
+
             {%- assign temp_compare_price = temp_plan_allocation.compare_at_price -%}
+
             {%- if temp_compare_price == blank or temp_compare_price == 0 -%}
               {%- assign temp_compare_price = current_variant.price -%}
             {%- endif -%}
+
             {%- if temp_compare_price > temp_plan_allocation.price -%}
-              {%- assign temp_discount_amount = temp_compare_price | minus: temp_plan_allocation.price -%}
-              {%- assign temp_discount_percentage = temp_discount_amount | times: 100.0 | divided_by: temp_compare_price | round -%}
+
+              {%- assign temp_discount_amount =
+                temp_compare_price
+                | minus: temp_plan_allocation.price
+              -%}
+
+              {%- assign temp_discount_percentage =
+                temp_discount_amount
+                | times: 100.0
+                | divided_by: temp_compare_price
+                | round
+              -%}
+
               {%- if temp_discount_percentage > max_discount_percentage -%}
                 {%- assign max_discount_percentage = temp_discount_percentage -%}
               {%- endif -%}
+
             {%- endif -%}
+
           {%- endif -%}
+
         {%- endfor -%}
       {%- endfor -%}
 
+
       {%- for group in product.selling_plan_groups -%}
         {%- for plan in group.selling_plans -%}
+
           {%- assign plan_allocation = blank -%}
 
           {%- for allocation in current_variant.selling_plan_allocations -%}
@@ -192,7 +216,9 @@
             {%- endif -%}
           {%- endfor -%}
 
+
           {%- if plan_allocation != blank -%}
+
             {%- assign compare_price = plan_allocation.compare_at_price -%}
             {%- assign discount_percentage = 0 -%}
 
@@ -201,20 +227,23 @@
             {%- endif -%}
 
             {%- if compare_price > plan_allocation.price -%}
-              {%- assign discount_amount = compare_price
+
+              {%- assign discount_amount =
+                compare_price
                 | minus: plan_allocation.price
               -%}
 
-              {%- assign discount_percentage = discount_amount
+              {%- assign discount_percentage =
+                discount_amount
                 | times: 100.0
                 | divided_by: compare_price
                 | round
               -%}
+
             {%- endif -%}
 
             <label
               class="sw-option"
-              data-selling-plan-id="{{ plan.id }}"
               data-price="{{ plan_allocation.price | money | escape }}"
               style="
                 display: flex;
@@ -232,6 +261,7 @@
                 transition: all 0.2s ease;
               "
             >
+
               <span
                 style="
                   position: relative;
@@ -243,11 +273,13 @@
                   height: 24px;
                 "
               >
+
                 <input
                   class="sw-radio-input"
                   type="radio"
                   name="{{ radio_name }}"
                   value="{{ plan.id }}"
+                  form="product-form-{{ section.id }}"
                   style="
                     position: absolute;
                     width: 100%;
@@ -273,7 +305,9 @@
                     background: #ffffff;
                   "
                 ></span>
+
               </span>
+
 
               <div
                 class="sw-option-content"
@@ -287,6 +321,7 @@
                   width: 100%;
                 "
               >
+
                 <span
                   style="
                     min-width: 0;
@@ -299,6 +334,7 @@
                   {{ plan.name }}
                 </span>
 
+
                 <span
                   class="sw-option-meta"
                   style="
@@ -309,6 +345,7 @@
                     gap: 1rem;
                   "
                 >
+
                   <span
                     style="
                       color: #111827;
@@ -320,8 +357,13 @@
                     {{ plan_allocation.price | money }}
                   </span>
 
+
                   {%- if discount_percentage > 0 -%}
-                    {%- if discount_percentage == max_discount_percentage and max_discount_percentage > 0 -%}
+
+                    {%- if discount_percentage == max_discount_percentage
+                      and max_discount_percentage > 0
+                    -%}
+
                       <span
                         class="sw-best-offer"
                         style="
@@ -341,7 +383,10 @@
                       >
                         Best Offer
                       </span>
+
                     {%- endif -%}
+
+
                     <span
                       style="
                         display: inline-flex;
@@ -359,266 +404,323 @@
                     >
                       Save {{ discount_percentage }}%
                     </span>
+
                   {%- endif -%}
+
                 </span>
               </div>
+
             </label>
+
           {%- endif -%}
+
         {%- endfor -%}
       {%- endfor -%}
-    </div>
 
-    <input
-      class="sw-selling-plan-input"
-      type="hidden"
-      name="selling_plan"
-      value=""
-    >
+    </div>
   </div>
+
 
   <script>
     (() => {
       const widgetId = {{ widget_id | json }};
 
       function initializeSubscriptionWidget() {
+
         const widget = document.getElementById(widgetId);
 
-        if (!widget || widget.dataset.initialized === "true") {
+        if (!widget || widget.dataset.initialized === 'true') {
           return;
         }
 
-        widget.dataset.initialized = "true";
+        widget.dataset.initialized = 'true';
 
         const options = Array.from(
-          widget.querySelectorAll(".sw-option")
+          widget.querySelectorAll('.sw-option')
         );
 
-        const sellingPlanInput = widget.querySelector(
-          ".sw-selling-plan-input"
-        );
-
-        if (!options.length || !sellingPlanInput) {
-          return;
-        }
-
-        function findProductForm() {
-          const configuredFormId = widget.dataset.formId;
-
-          if (configuredFormId) {
-            const configuredForm = document.getElementById(
-              configuredFormId
-            );
-
-            if (configuredForm) {
-              return configuredForm;
-            }
-          }
-
-          const productArea =
-            widget.closest("product-info") ||
-            widget.closest(".shopify-section") ||
-            widget.parentElement;
-
-          if (productArea) {
-            const localForm = productArea.querySelector(
-              'form[action*="/cart/add"]'
-            );
-
-            if (localForm) {
-              return localForm;
-            }
-          }
-
-          return document.querySelector(
-            'form[action*="/cart/add"]'
-          );
-        }
-
-        const productForm = findProductForm();
-
-        if (productForm) {
-          const oldSellingPlanInputs = productForm.querySelectorAll(
-            'input[name="selling_plan"]'
-          );
-
-          oldSellingPlanInputs.forEach((input) => {
-            if (input !== sellingPlanInput) {
-              input.remove();
-            }
-          });
-
-          productForm.appendChild(sellingPlanInput);
-        } else {
-          console.warn(
-            "Subscription widget: product form not found."
-          );
-        }
 
         function resetOption(option) {
-          option.classList.remove("sw-active");
-          option.style.border = "1px solid #d7d9dd";
-          option.style.background = "#ffffff";
-          option.style.boxShadow = "none";
 
-          const radio = option.querySelector(".sw-radio-input");
-          const radioCustom = option.querySelector(".sw-radio-custom");
-          const radioDot = option.querySelector(".sw-radio-dot");
+          option.classList.remove('sw-active');
+
+          option.style.border =
+            '1px solid #d7d9dd';
+
+          option.style.background =
+            '#ffffff';
+
+          option.style.boxShadow =
+            'none';
+
+
+          const radio =
+            option.querySelector('.sw-radio-input');
+
+          const radioCustom =
+            option.querySelector('.sw-radio-custom');
+
+          const radioDot =
+            option.querySelector('.sw-radio-dot');
+
 
           if (radio) {
             radio.checked = false;
           }
 
+
           if (radioCustom) {
-            radioCustom.style.borderColor = "#6b7280";
-            radioCustom.style.boxShadow = "none";
+            radioCustom.style.borderColor =
+              '#6b7280';
+
+            radioCustom.style.boxShadow =
+              'none';
           }
+
 
           if (radioDot) {
             radioDot.remove();
           }
+
         }
 
-        function activateOption(option) {
-          option.classList.add("sw-active");
-          option.style.border = "2px solid #1677ff";
-          option.style.background = "#f4f8ff";
-          option.style.boxShadow = "0 0 0 1px #1677ff";
 
-          const radio = option.querySelector(".sw-radio-input");
-          const radioCustom = option.querySelector(".sw-radio-custom");
+        function activateOption(option) {
+
+          option.classList.add('sw-active');
+
+          option.style.border =
+            '2px solid #1677ff';
+
+          option.style.background =
+            '#f4f8ff';
+
+          option.style.boxShadow =
+            '0 0 0 1px #1677ff';
+
+
+          const radio =
+            option.querySelector('.sw-radio-input');
+
+          const radioCustom =
+            option.querySelector('.sw-radio-custom');
+
 
           if (radio) {
             radio.checked = true;
           }
 
+
           if (radioCustom) {
-            radioCustom.style.borderColor = "#1677ff";
+
+            radioCustom.style.borderColor =
+              '#1677ff';
+
             radioCustom.style.boxShadow =
-              "0 0 0 3px rgba(22, 119, 255, 0.1)";
+              '0 0 0 3px rgba(22, 119, 255, 0.1)';
 
-            if (!radioCustom.querySelector(".sw-radio-dot")) {
-              const dot = document.createElement("span");
 
-              dot.className = "sw-radio-dot";
+            if (!radioCustom.querySelector('.sw-radio-dot')) {
 
-              dot.style.position = "absolute";
-              dot.style.top = "50%";
-              dot.style.left = "50%";
-              dot.style.width = "10px";
-              dot.style.height = "10px";
-              dot.style.borderRadius = "50%";
-              dot.style.background = "#1677ff";
-              dot.style.transform = "translate(-50%, -50%)";
+              const dot =
+                document.createElement('span');
+
+              dot.className =
+                'sw-radio-dot';
+
+              dot.style.position =
+                'absolute';
+
+              dot.style.top =
+                '50%';
+
+              dot.style.left =
+                '50%';
+
+              dot.style.width =
+                '10px';
+
+              dot.style.height =
+                '10px';
+
+              dot.style.borderRadius =
+                '50%';
+
+              dot.style.background =
+                '#1677ff';
+
+              dot.style.transform =
+                'translate(-50%, -50%)';
 
               radioCustom.appendChild(dot);
+
             }
+
           }
+
         }
 
+
         function updateMainProductPrice(priceText) {
+
           if (!priceText) {
             return;
           }
 
+
           const productArea =
-            widget.closest("product-info") ||
-            widget.closest(".shopify-section");
+            widget.closest('product-info') ||
+            widget.closest('.shopify-section');
+
 
           if (!productArea) {
             return;
           }
 
+
           const priceElement =
-            productArea.querySelector(".price-item--sale") ||
-            productArea.querySelector(".price-item--regular") ||
-            productArea.querySelector("[data-product-price]");
+            productArea.querySelector('.price-item--sale') ||
+            productArea.querySelector('.price-item--regular') ||
+            productArea.querySelector('[data-product-price]');
+
 
           if (priceElement) {
             priceElement.textContent = priceText;
           }
+
         }
 
+
         function selectOption(selectedOption, changePrice = true) {
+
           options.forEach(resetOption);
+
           activateOption(selectedOption);
 
-          const sellingPlanId =
-            selectedOption.dataset.sellingPlanId || "";
 
-          sellingPlanInput.value = sellingPlanId;
+          /*
+           * No selling_plan JavaScript here.
+           *
+           * The checked radio is attached directly
+           * to Dawn's product form using:
+           *
+           * form="product-form-{{ section.id }}"
+           */
 
-          sellingPlanInput.dispatchEvent(
-            new Event("change", {
-              bubbles: true
-            })
-          );
 
           if (changePrice) {
+
             updateMainProductPrice(
               selectedOption.dataset.price
             );
+
           }
+
         }
 
+
         options.forEach((option) => {
-          option.addEventListener("click", function () {
+
+          option.addEventListener('click', function () {
             selectOption(option);
           });
 
-          option.addEventListener("mouseenter", function () {
-            if (!option.classList.contains("sw-active")) {
-              option.style.borderColor = "#9ca3af";
+
+          option.addEventListener('mouseenter', function () {
+
+            if (!option.classList.contains('sw-active')) {
+
+              option.style.borderColor =
+                '#9ca3af';
+
               option.style.boxShadow =
-                "0 3px 12px rgba(0, 0, 0, 0.06)";
+                '0 3px 12px rgba(0, 0, 0, 0.06)';
+
             }
+
           });
 
-          option.addEventListener("mouseleave", function () {
-            if (!option.classList.contains("sw-active")) {
-              option.style.borderColor = "#d7d9dd";
-              option.style.boxShadow = "none";
+
+          option.addEventListener('mouseleave', function () {
+
+            if (!option.classList.contains('sw-active')) {
+
+              option.style.borderColor =
+                '#d7d9dd';
+
+              option.style.boxShadow =
+                'none';
+
             }
+
           });
 
-          const radio = option.querySelector(".sw-radio-input");
+
+          const radio =
+            option.querySelector('.sw-radio-input');
+
 
           if (radio) {
-            radio.addEventListener("change", function () {
+
+            radio.addEventListener('change', function () {
+
               if (radio.checked) {
                 selectOption(option);
               }
+
             });
+
           }
+
         });
 
-        let selectedOption = options.find((option) => {
-          const radio = option.querySelector(".sw-radio-input");
-          return radio && radio.checked;
-        });
+
+        let selectedOption =
+          options.find((option) => {
+
+            const radio =
+              option.querySelector('.sw-radio-input');
+
+            return radio && radio.checked;
+
+          });
+
 
         if (!selectedOption) {
           selectedOption = options[0];
         }
 
-        selectOption(selectedOption, false);
+
+        if (selectedOption) {
+          selectOption(selectedOption, false);
+        }
+
       }
 
-      if (document.readyState === "loading") {
+
+      if (document.readyState === 'loading') {
+
         document.addEventListener(
-          "DOMContentLoaded",
+          'DOMContentLoaded',
           initializeSubscriptionWidget,
           { once: true }
         );
+
       } else {
+
         initializeSubscriptionWidget();
+
       }
 
+
       document.addEventListener(
-        "shopify:section:load",
+        'shopify:section:load',
         initializeSubscriptionWidget
       );
+
     })();
   </script>
+
 {%- endif -%}
 
 {% schema %}

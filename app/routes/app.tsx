@@ -6,6 +6,7 @@ import { NavMenu } from "@shopify/app-bridge-react";
 import { Box } from "@shopify/polaris";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
+import { ChatSidebar } from "../components/assistant/ChatSidebar";
 import { authenticate } from "../shopify.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
@@ -36,6 +37,7 @@ export default function App() {
       <Box paddingBlockEnd="400">
         <Outlet />
       </Box>
+      <ChatSidebar />
     </AppProvider>
   );
 }

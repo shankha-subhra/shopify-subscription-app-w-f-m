@@ -13,6 +13,11 @@ export async function importProductsToShopify(shop: string, session: any) {
   const locData = await locRes.json();
   const locations = locData.data?.locations?.edges?.map((e: any) => e.node.id) || [];
 
+  // Get all active publications (Sales Channels)
+  const pubRes = await admin.graphql(`{ publications(first: 10) { edges { node { id } } } }`);
+  const pubData = await pubRes.json();
+  const publications = pubData.data?.publications?.edges?.map((e: any) => e.node.id) || [];
+
   for (const product of products) {
     let currentVariables: any = null;
     try {
@@ -63,7 +68,8 @@ export async function importProductsToShopify(shop: string, session: any) {
       const productInput: any = {
         title: product.title,
         descriptionHtml: product.description,
-        vendor: product.brand || "FakeStoreAPI"
+        vendor: product.brand || "FakeStoreAPI",
+        status: "ACTIVE"
       };
 
       if (product.image) {
@@ -124,13 +130,29 @@ export async function importProductsToShopify(shop: string, session: any) {
         await saveMapping(shop, 'product', productId, data.productSet.product.id);
       }
 
+      const finalShopifyProductId = data?.productSet?.product?.id || variables.input.id;
+
+      // Publish to all available publications (Sales Channels)
+      if (finalShopifyProductId && publications.length > 0) {
+        const publishInput = publications.map((pubId: string) => ({ publicationId: pubId }));
+        await admin.graphql(
+          `#graphql
+            mutation publishablePublish($id: ID!, $input: [PublicationInput!]!) {
+              publishablePublish(id: $id, input: $input) {
+                userErrors { field message }
+              }
+            }`,
+          { variables: { id: finalShopifyProductId, input: publishInput } }
+        );
+      }
+
       // Store Success in DB Log
       await db.externalSyncLog.create({
         data: {
           shop,
           entityType: 'product',
           externalId: String(productId),
-          shopifyId: data?.productSet?.product?.id || variables.input.id,
+          shopifyId: finalShopifyProductId,
           endpoint: '/graphql.json',
           status: 'SUCCESS',
           requestPayload: JSON.stringify(variables.input),

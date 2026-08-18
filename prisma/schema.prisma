@@ -629,3 +629,38 @@ model ExternalSyncSetting {
 
   @@map("external_sync_settings")
 }
+
+model AssistantConversation {
+  id        String   @id @default(cuid())
+  shop      String
+  section   String   @default("subscription")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages AssistantMessage[]
+}
+
+model AssistantMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String
+  content        String   @db.Text
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model AssistantPendingAction {
+  id             String   @id @default(cuid())
+  shop           String
+  conversationId String?
+  module         String   @default("subscription")
+  action         String
+  payload        Json
+  status         String    @default("PENDING")
+  createdAt      DateTime  @default(now())
+  executedAt     DateTime?
+}
+
+

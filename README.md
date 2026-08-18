@@ -18,6 +18,12 @@ A full-stack, embedded Shopify application built with Remix, Prisma, and Shopify
 - **Webhooks**: Automatic background syncing for subscription contract creation and updates.
 - **Data Migration Engine**: Robust synchronization system that imports Custom Products (with dynamic variants, image swatches, and distributed inventory), Customers, Orders, Categories, and Discount Coupons directly into Shopify from external APIs.
 - **NetSuite Integration (WIP)**: Note that the NetSuite synchronization integration is currently in progress and is not fully implemented yet.
+- **Shopify Resource Picker Integration:** Fully integrated the native Shopify Resource Picker into the AI Assistant for bulk product selection, replacing the clunky text-based search/browse workflow.
+- **Pre-populated Selections:** Updated the backend to fetch existing `productIds` for subscription rules, allowing the Resource Picker to open with previously selected products already checked (`initialSelectionIds`).
+- **Robust State Reset:** Implemented a global state reset endpoint (`/api/assistant/action/reset`). Closing the assistant sidebar or clicking "Cancel" now instantly wipes all pending intents and UI state, ensuring a perfectly clean slate every time.
+- **Dynamic UI Message Rendering:** Upgraded the `ChatSidebar` component to support receiving and rendering arrays of messages from a single backend response. This enables cleanly separating success text from interactive UI buttons (like the "What to do next?" options).
+- **Type Safety & Bug Fixes:** Resolved critical bugs including a `string` vs `number` comparison issue that broke subscription plan metadata lookups, and fixed an unbalanced bracket parse error that was crashing the Vite build process.
+- **Flow AI Assistant Chatbot:** Fixed intent routing so that clicking "Add more products to this Plan" directly launches the product picker for the active plan instead of redundantly asking which plan to modify.
 
 ## Tech Stack
 
@@ -101,6 +107,8 @@ npx vite dev --port 3000
 ```bash
 npx ngrok http --url=your-ngrok-url.ngrok-free.dev 3000
 ```
+
+
 
 ## Contact & Support
 
