@@ -115,9 +115,9 @@ npx ngrok http --url=your-ngrok-url.ngrok-free.dev 3000
 **Maintained by:**
 - **Name:** Shankha Subhra Bag
 - **Email:** shankha4030@gmail.com
-- **Phone:** +919674364030
+- **Phone/Whatsapp:** +919674364030
 
-Please feel free to reach out via email for any inquiries or support requests regarding this application.
+Please feel free to reach out via email for any inquiries or support requests regarding this application. 
 
 ## License
 
