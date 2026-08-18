@@ -240,7 +240,7 @@ export function ChatSidebar() {
               background: 'linear-gradient(135deg, #FF0080 0%, #7928CA 100%)',
               color: 'white',
               border: 'none',
-              padding: '14px 28px',
+              padding: '12px 25px',
               borderRadius: '50px',
               fontSize: '16px',
               fontWeight: 600,
@@ -291,16 +291,28 @@ export function ChatSidebar() {
         }}
       >
         {/* Header */}
-        <div style={{ padding: "16px 20px", backgroundColor: "#f4f6f8", borderBottom: "1px solid #dfe3e8", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Header */}
+        <div style={{ padding: "16px 20px", background: "linear-gradient(135deg, #FF0080 0%, #7928CA 100%)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {activeSection ? (
-            <Button variant="plain" onClick={() => {
-              setActiveSection(null);
-              fetch("/api/assistant/action/reset", { method: "POST" }).catch(console.error);
-            }}>← Back</Button>
+            <button 
+              style={{ background: 'transparent', border: 'none', color: 'white', fontWeight: 600, fontSize: '14px', cursor: 'pointer', padding: 0 }}
+              onClick={() => {
+                setActiveSection(null);
+                fetch("/api/assistant/action/reset", { method: "POST" }).catch(console.error);
+              }}>
+              ← Back
+            </button>
           ) : (
-            <Text as="h2" variant="headingMd">Smart Assistant</Text>
+            <h2 style={{ color: "white", margin: 0, fontSize: "16px", fontWeight: 600 }}>Smart Assistant</h2>
           )}
-          <Button variant="plain" icon={XIcon} onClick={handleClose} />
+          <button 
+             style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }} 
+             onClick={handleClose}
+          >
+             <div style={{ filter: 'brightness(0) invert(1)', display: 'flex' }}>
+                <Icon source={XIcon} />
+             </div>
+          </button>
         </div>
 
         {/* Dashboard View */}
