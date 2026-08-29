@@ -48,7 +48,7 @@
     "@ngrok/ngrok": "^1.7.0",
     "@remix-run/eslint-config": "^2.16.1",
     "@remix-run/route-config": "^2.16.1",
-    "@shopify/api-codegen-preset": "^2.0.1",
+    "@shopify/api-codegen-preset": "^3.0.0",
     "@types/eslint": "^9.6.1",
     "@types/node": "^26.1.1",
     "@types/react": "^18.2.31",
